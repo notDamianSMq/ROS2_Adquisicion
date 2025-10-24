@@ -1,4 +1,6 @@
 from setuptools import find_packages, setup
+import os
+from glob import glob
 
 package_name = 'project_pkg'
 
@@ -10,6 +12,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        # ADD THIS LINE to include all files from the 'launch' directory
+        (os.path.join('share', package_name, 'launch'), glob('launch/*launch.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -24,6 +28,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'sensor_processor = project_pkg.sensor_processor_node:main',
+            'obstacle_detector = project_pkg.obstacle_detector_node:main',
         ],
     },
 )
