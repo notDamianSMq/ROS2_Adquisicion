@@ -1,0 +1,10 @@
+# Ignore build artifacts
+build/
+install/
+log/
+
+# Ignore ros2_data folder
+ros2_data/
+
+# Ignore VS Code settings
+.vscode/
