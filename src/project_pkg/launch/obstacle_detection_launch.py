@@ -5,12 +5,14 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='project_pkg',
-            executable='sensor_processor',
-            name='sensor_processor_node'
+            executable='listener_points',
+            name='cloud_points_node',
+            emulate_tty=True,
         ),
         Node(
             package='project_pkg',
-            executable='obstacle_detector',
-            name='obstacle_detector_node'
+            executable='fusion_collector',
+            name='fusion_node',
+            emulate_tty=True,
         ),
     ])
