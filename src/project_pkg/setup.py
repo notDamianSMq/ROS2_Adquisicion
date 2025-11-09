@@ -30,6 +30,7 @@ setup(
         'console_scripts': [
             'sensor_processor = project_pkg.sensor_processor_node:main',
             'obstacle_detector = project_pkg.obstacle_detector_node:main',
+            'listener_points = project_pkg.cloud_node:main',
         ],
     },
 )

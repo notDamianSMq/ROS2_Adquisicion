@@ -9,3 +9,4 @@ ros2_data/
 # Ignore VS Code settings
 .vscode/
 .idea
+/src/project_pkg/project_pkg/plantilla_nodo.py
