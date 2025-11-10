@@ -79,9 +79,9 @@ class FusionNode(Node):
         for (x, y, c) in zip(u, v, colors):
             img[y, x] = c[::-1]  # convertir de RGB (matplotlib) a BGR (OpenCV)
 
+        cv2.imshow("Nube de puntos XY (color por Z)", img)
+        cv2.waitKey(1)
         self.video_writer.write(img)
-
-
 
 
 def main(args=None):
