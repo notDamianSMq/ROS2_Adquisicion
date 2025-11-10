@@ -13,8 +13,6 @@ class CleanCLoudServerNode(Node):
         self.get_logger().info('Servidor clean_cloud_server iniciado.')
 
     def clean_callback(self, request, response):
-        self.get_logger().info(' #{self.i}')
-
         # Convertir PointCloud2 a numpy array
         points = pc2.read_points(request.input, field_names=("x", "y", "z"), skip_nans=True)
 
@@ -23,11 +21,11 @@ class CleanCLoudServerNode(Node):
             response.output = request.input
             return response
 
+        points = np.array(points.tolist(), dtype=float)
         precision = max(0, request.precision)  # seguridad: evita valores negativos
 
         # Redondear los puntos según la precisión solicitada
         rounded = np.round(points, precision)
-
         # Eliminar duplicados
         unique_points = np.unique(rounded, axis=0)
 
@@ -36,13 +34,20 @@ class CleanCLoudServerNode(Node):
 
         # Crear nueva nube PointCloud2
         header = request.input.header
-        fields = [
-            PointField('x', 0, PointField.FLOAT32, 1),
-            PointField('y', 4, PointField.FLOAT32, 1),
-            PointField('z', 8, PointField.FLOAT32, 1),
-        ]
+        fields = []
+
+        for i, name in enumerate(['x', 'y', 'z']):
+            f = PointField()
+            f.name = name
+            f.offset = i * 4  # float32 ocupa 4 bytes
+            f.datatype = PointField.FLOAT32
+            f.count = 1
+            fields.append(f)
 
         response.output = pc2.create_cloud(header, fields, unique_points.tolist())
+
+        self.get_logger().info(
+            f"Enviando respuesta")
         return response
 
 def main(args=None):
