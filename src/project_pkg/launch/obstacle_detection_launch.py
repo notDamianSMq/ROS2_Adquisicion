@@ -15,4 +15,10 @@ def generate_launch_description():
             name='fusion_node',
             emulate_tty=True,
         ),
+        Node(
+            package='project_pkg',
+            executable='clean_cloud_service',
+            name='clean_cloud_server_node',
+            emulate_tty=True,
+        ),
     ])
