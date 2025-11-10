@@ -26,11 +26,11 @@ class CloudNode(Node):
             f'Recibido PointCloud2: ancho={msg.width}, alto={msg.height}, campos={len(msg.fields)}\n'
         )
 
-        res = self.send_clean_request(msg)
+        self.send_clean_request(msg)
 
         # Publicar los datos una vez han sido limpiados
         self.get_logger().info("Transmitiendo datos limpiados\n")
-        self.publisher.publish(res)
+        #self.publisher.publish(res)
 
     def send_clean_request(self, msg: PointCloud2):
         req = CleanCloud.Request()
@@ -39,10 +39,15 @@ class CloudNode(Node):
         req.precision = 3
 
         future = self.client.call_async(req)
-        rclpy.spin_until_future_complete(self, future)
-        res = future.result()
-        self.get_logger().info("Recibida nube limpia.")
-        return res.output
+        future.add_done_callback(lambda f: self.publish_cleaned(f))
+
+    def publish_cleaned(self, future):
+        try:
+            res = future.result()
+            self.publisher.publish(res.output)
+            self.get_logger().info("Transmitida nube limpia")
+        except Exception as e:
+            self.get_logger().error(f"Error en servicio: {e}")
 
 
 def main(args=None):
