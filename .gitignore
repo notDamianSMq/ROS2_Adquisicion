@@ -10,3 +10,5 @@ ros2_data/
 .vscode/
 .idea
 /src/project_pkg/project_pkg/plantilla_nodo.py
+/src/project_pkg/project_pkg/cloud_video.avi
+/cloud_video.avi
