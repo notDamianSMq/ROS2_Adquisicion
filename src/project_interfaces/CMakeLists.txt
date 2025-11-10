@@ -10,10 +10,13 @@ find_package(ament_cmake REQUIRED)
 
 # Find the message generator packages
 find_package(rosidl_default_generators REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 # Generate the interfaces from our .msg files
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ObstacleData.msg"
+  "srv/CleanCloud.srv"
+  DEPENDENCIES sensor_msgs
 )
 
 # uncomment the following section in order to fill in

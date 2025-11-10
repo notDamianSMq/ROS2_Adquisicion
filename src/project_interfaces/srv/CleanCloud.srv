@@ -1,0 +1,4 @@
+sensor_msgs/PointCloud2 input
+int32 precision
+---
+sensor_msgs/PointCloud2 output
