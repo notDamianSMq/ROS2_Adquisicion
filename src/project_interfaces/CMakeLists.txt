@@ -15,6 +15,7 @@ find_package(sensor_msgs REQUIRED)
 # Generate the interfaces from our .msg files
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ObstacleData.msg"
+  "msg/CleanedCloud.msg"
   "srv/CleanCloud.srv"
   DEPENDENCIES sensor_msgs
 )

@@ -4,21 +4,28 @@ from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
 from rcl_interfaces.msg import SetParametersResult
 
+from project_interfaces.msg import CleanedCloud
 from project_interfaces.srv import CleanCloud
 
 
 class CloudNode(Node):
     def __init__(self):
         super().__init__('cloud_points_node')
+
+        # Suscribirse al rosbag
         self.subscriber = self.create_subscription(
             PointCloud2, "/ouster/points", self.callback, 10
         )
-        self.publisher = self.create_publisher(PointCloud2, "/clean/points", 10)
 
+        # Publicar los datos para el nodo fusion
+        self.publisher = self.create_publisher(CleanedCloud, "/clean/points", 10)
+
+        # Definir el parametro de precision de limpieza
         self.precision = 3
         self.declare_parameter('precision', 3)
         self.add_on_set_parameters_callback(self.parameter_callback)
 
+        # Suscribirse al servidor de limpieza
         self.client = self.create_client(CleanCloud, 'clean_pointcloud')
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Esperando al servidor...')
@@ -59,7 +66,10 @@ class CloudNode(Node):
     def publish_cleaned(self, future):
         try:
             res = future.result()
-            self.publisher.publish(res.output)
+
+            msg = CleanedCloud(points=res.output, clean_precision=self.precision)
+
+            self.publisher.publish(msg)
             self.get_logger().info("Transmitida nube limpia")
         except Exception as e:
             self.get_logger().error(f"Error en servicio: {e}")

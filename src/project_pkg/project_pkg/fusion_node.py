@@ -7,11 +7,13 @@ from sensor_msgs.msg import PointCloud2
 import sensor_msgs_py.point_cloud2 as pc2
 import matplotlib.pyplot as plt
 
+from project_interfaces.msg import CleanedCloud
+
 class FusionNode(Node):
     def __init__(self):
         super().__init__('fusion_node')
         self.points_subscriber = self.create_subscription(
-            PointCloud2, "/clean/points", self.points_callback, 10
+            CleanedCloud, "/clean/points", self.points_callback, 10
         )
         self.get_logger().info('Nodo fusion_node iniciado. Escuchando /clean/points...')
 
@@ -25,12 +27,15 @@ class FusionNode(Node):
             (self.frame_width, self.frame_height)
         )
 
-    def points_callback(self, msg: PointCloud2):
+    def points_callback(self, msg: CleanedCloud):
+        points = msg.points
+        clean_precision = msg.clean_precision
+
         self.get_logger().info(
-            f'Recibido PointCloud2: ancho={msg.width}, alto={msg.height}, campos={len(msg.fields)}\n'
+            f'Recibido PointCloud2: ancho={points.width}, alto={points.height}, campos={len(points.fields)}, Limpiado con precision {clean_precision}\n'
         )
 
-        self.add_frame_avi(msg)
+        self.add_frame_avi(points)
 
     def add_frame_avi(self, msg: PointCloud2):
         # Convertir PointCloud2 a lista de puntos

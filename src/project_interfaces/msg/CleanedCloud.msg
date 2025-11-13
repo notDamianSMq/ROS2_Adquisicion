@@ -1,0 +1,2 @@
+sensor_msgs/PointCloud2 points
+int32 clean_precision
