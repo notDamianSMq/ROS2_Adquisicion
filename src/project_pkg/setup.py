@@ -31,6 +31,8 @@ setup(
             'listener_points = project_pkg.cloud_node:main',
             'fusion_collector = project_pkg.fusion_node:main',
             'clean_cloud_service = project_pkg.clean_cloud_server_node:main',
+            'image_processor = project_pkg.image_processor:main',
+            'listener_predictions = project_pkg.listener_predicciones:main'
         ],
     },
 )
