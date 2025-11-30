@@ -32,7 +32,8 @@ setup(
             'fusion_collector = project_pkg.fusion_node:main',
             'clean_cloud_service = project_pkg.clean_cloud_server_node:main',
             'image_processor = project_pkg.image_processor:main',
-            'listener_predictions = project_pkg.listener_predicciones:main'
+            'listener_predictions = project_pkg.listener_predicciones:main',
+            'sensor_fusion = project_pkg.sensor_fusion_node:main'
         ],
     },
 )
