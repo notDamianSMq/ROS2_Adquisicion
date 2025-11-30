@@ -122,6 +122,7 @@ def generate_launch_description():
                 # Distancia del sensor al parachoques (metros)
                 # Ajusta según dónde esté montado el LiDAR en tu vehículo
                 'sensor_to_bumper': 2.0,  # ej: 2 metros del LiDAR al parachoques
+                'confidence': 0.3,
             }]
         ),
     ])

@@ -12,6 +12,7 @@ import cv2
 import numpy as np
 import rclpy
 from rclpy.node import Node
+from rcl_interfaces.msg import SetParametersResult
 from sensor_msgs.msg import PointCloud2, Image
 from std_msgs.msg import Header
 import sensor_msgs_py.point_cloud2 as pc2
@@ -23,11 +24,7 @@ from project_interfaces.msg import CleanedCloud, FusedDetection, FusedDetections
 
 class SensorFusionNode(Node):
     def __init__(self):
-        super().__init__(
-            'sensor_fusion_node',
-            allow_undeclared_parameters=True,
-            automatically_declare_parameters_from_overrides=True
-        )
+        super().__init__('sensor_fusion_node')
         
         self.bridge = CvBridge()
         
@@ -67,6 +64,8 @@ class SensorFusionNode(Node):
         # Parámetro de debug para visualizar proyección LiDAR y crops
         self.declare_parameter('debug_mode', False)
 
+        self.declare_parameter('confidence', 0.3)
+        self.add_on_set_parameters_callback(self.param_callback)
 
         
         # Cargar parámetros
@@ -160,6 +159,7 @@ class SensorFusionNode(Node):
         
         self.image_width = self.get_parameter('image_width').value
         self.image_height = self.get_parameter('image_height').value
+        self.confidence = self.get_parameter('confidence').value
         
         self.lidar_offset = np.array([
             self.get_parameter('lidar_to_camera_x').value,
@@ -186,6 +186,13 @@ class SensorFusionNode(Node):
             [0, self.fy, self.cy],
             [0, 0, 1]
         ])
+    
+    def param_callback(self, params):
+        for param in params:
+            if param.name == "confidence":
+                self.confidence = param.value
+                self.get_logger().info(f'Nuevo valor de confidence: {self.confidence}')
+        return SetParametersResult(successful=True)
 
     def cloud_callback(self, msg: CleanedCloud):
         """Callback para la nube de puntos limpia."""
@@ -242,46 +249,47 @@ class SensorFusionNode(Node):
         debug_info = []  # Para visualización de debug
         
         for det in self.latest_detections.detections:
-            # Encontrar puntos dentro del bounding box
-            bbox = (det.x1, det.y1, det.x2, det.y2)
-            points_in_bbox, distances = self._get_points_in_bbox(
-                projected_points, 
-                self.latest_cloud_points,
-                bbox
-            )
-            
-            # Guardar info para debug
-            debug_info.append({
-                'bbox': bbox,
-                'class_name': det.class_name,
-                'points_in_bbox': points_in_bbox,
-                'distances': distances
-            })
-            
-            # Crear detección fusionada
-            fused_det = FusedDetection()
-            fused_det.class_id = det.class_id
-            fused_det.class_name = det.class_name
-            fused_det.confidence = det.confidence
-            fused_det.x1 = det.x1
-            fused_det.y1 = det.y1
-            fused_det.x2 = det.x2
-            fused_det.y2 = det.y2
-            
-            if len(distances) > 0:
-                # Usar mediana y restar distancia del sensor al borde del vehículo
-                raw_distance = float(np.median(distances))
-                fused_det.distance_mean = max(0.0, raw_distance - self.sensor_to_bumper)
-                fused_det.distance_min = max(0.0, float(np.min(distances)) - self.sensor_to_bumper)
-                fused_det.distance_max = max(0.0, float(np.max(distances)) - self.sensor_to_bumper)
-                fused_det.num_lidar_points = len(distances)
-            else:
-                fused_det.distance_mean = -1.0  # Indica que no hay datos
-                fused_det.distance_min = -1.0
-                fused_det.distance_max = -1.0
-                fused_det.num_lidar_points = 0
-            
-            fused_detections.append(fused_det)
+            if det.confidence > self.confidence:
+                # Encontrar puntos dentro del bounding box
+                bbox = (det.x1, det.y1, det.x2, det.y2)
+                points_in_bbox, distances = self._get_points_in_bbox(
+                    projected_points, 
+                    self.latest_cloud_points,
+                    bbox
+                )
+                
+                # Guardar info para debug
+                debug_info.append({
+                    'bbox': bbox,
+                    'class_name': det.class_name,
+                    'points_in_bbox': points_in_bbox,
+                    'distances': distances
+                })
+                
+                # Crear detección fusionada
+                fused_det = FusedDetection()
+                fused_det.class_id = det.class_id
+                fused_det.class_name = det.class_name
+                fused_det.confidence = det.confidence
+                fused_det.x1 = det.x1
+                fused_det.y1 = det.y1
+                fused_det.x2 = det.x2
+                fused_det.y2 = det.y2
+                
+                if len(distances) > 0:
+                    # Usar mediana y restar distancia del sensor al borde del vehículo
+                    raw_distance = float(np.median(distances))
+                    fused_det.distance_mean = max(0.0, raw_distance - self.sensor_to_bumper)
+                    fused_det.distance_min = max(0.0, float(np.min(distances)) - self.sensor_to_bumper)
+                    fused_det.distance_max = max(0.0, float(np.max(distances)) - self.sensor_to_bumper)
+                    fused_det.num_lidar_points = len(distances)
+                else:
+                    fused_det.distance_mean = -1.0  # Indica que no hay datos
+                    fused_det.distance_min = -1.0
+                    fused_det.distance_max = -1.0
+                    fused_det.num_lidar_points = 0
+                
+                fused_detections.append(fused_det)
         
         fused_msg.detections = fused_detections
         fused_msg.num_detections = len(fused_detections)
