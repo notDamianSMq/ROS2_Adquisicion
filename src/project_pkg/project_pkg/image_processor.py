@@ -8,7 +8,7 @@ import cv2
 from cv_bridge import CvBridge
 from ultralytics import YOLO
 
-from image_interfaces.msg import Detections, Detection
+from project_interfaces.msg import Detections, Detection
 from collections import Counter
 
 
